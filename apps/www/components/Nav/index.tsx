@@ -141,7 +141,7 @@ const Nav = ({ hideNavbar, stickyNavbar = true }: Props) => {
                           </NavigationMenuTrigger>
                           <NavigationMenuContent
                             data-active={activeDropdown === menuItem.title}
-                            className="www-navigation-content data-[active=false]:pointer-events-none"
+                            className="www-navigation-content data-[active=false]:pointer-events-none md:w-full"
                           >
                             {menuItem.dropdown}
                           </NavigationMenuContent>
@@ -164,7 +164,7 @@ const Nav = ({ hideNavbar, stickyNavbar = true }: Props) => {
                     forceMount
                     data-open={activeDropdown !== ''}
                     containerProps={{ className: 'inset-x-0' }}
-                    className="www-navigation-viewport rounded-xl bg-background"
+                    className="www-navigation-viewport rounded-xl bg-surface-75 md:w-[960px]"
                   />
                 </NavigationMenu>
               </div>
