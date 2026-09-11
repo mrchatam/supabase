@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { QueryResultChart } from './QueryResultChart'
+import { QueryResultChart, xKeyFor } from './QueryResultChart'
 import { customRender } from '@/tests/lib/custom-render'
 
 const CUSTOMER_COLUMN = 'customer_email_address'
@@ -78,7 +78,7 @@ describe('QueryResultChart column names in CSS', () => {
     expect(styleTextOf(container)).not.toContain(CUSTOMER_COLUMN)
   })
 
-  it('keeps the X key distinct when the X column is named like a series key', () => {
+  it('renders with an X column named like a series key', () => {
     const colliding = { ...chart, x_column: 'series_0' }
     const rows = [
       { series_0: 'a', [CUSTOMER_COLUMN]: 4 },
@@ -88,9 +88,33 @@ describe('QueryResultChart column names in CSS', () => {
       <QueryResultChart chart={colliding} result={{ rows } as never} />
     )
 
-    // Without the guard the X value would overwrite the Y value under the same row key.
-    const seriesKeys = new Set(styleTextOf(container).match(/--color-series_\d+/g))
-    expect(seriesKeys.size).toBe(1)
+    expect(styleTextOf(container)).not.toContain(CUSTOMER_COLUMN)
+  })
+})
+
+/**
+ * Asserted directly rather than through a render. jsdom draws no bars or ticks at the
+ * 0x0 size it gives the chart container, so a rendered collision is not observable and
+ * the same assertions pass with the guard removed.
+ */
+describe('xKeyFor', () => {
+  it('moves the X key off a colliding series key', () => {
+    expect(xKeyFor('series_0', ['series_0'])).toBe('series_0_')
+  })
+
+  it('keeps appending until the X key is distinct', () => {
+    expect(xKeyFor('series_0', ['series_0', 'series_0_'])).toBe('series_0__')
+  })
+
+  it('leaves a non-colliding X column alone', () => {
+    expect(xKeyFor('timestamp', ['series_0', 'series_1'])).toBe('timestamp')
+    expect(xKeyFor('day', [])).toBe('day')
+  })
+
+  it('cannot produce a key that collides again, since series keys carry no trailing underscore', () => {
+    const seriesKeys = ['series_0', 'series_1', 'series_2']
+    const result = xKeyFor('series_1', seriesKeys)
+    expect(seriesKeys).not.toContain(result)
   })
 })
 

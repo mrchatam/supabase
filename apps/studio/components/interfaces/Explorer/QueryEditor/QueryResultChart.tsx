@@ -50,7 +50,7 @@ const seriesKeyFor = (index: number) => `series_${index}`
  * Guards the one collision the positional keys introduce: an X column literally named
  * `series_0`. Appends underscores until the X key is distinct from every series key.
  */
-function xKeyFor(xColumn: string, seriesKeys: string[]): string {
+export function xKeyFor(xColumn: string, seriesKeys: string[]): string {
   let key = xColumn
   while (seriesKeys.includes(key)) key = `${key}_`
   return key
