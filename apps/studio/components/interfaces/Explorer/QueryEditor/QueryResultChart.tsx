@@ -30,17 +30,31 @@ const toChartValue = (value: unknown): string | number => {
 }
 
 /**
- * Chart series are keyed by position rather than by the column name they came from.
+ * Y series are keyed by position rather than by the column name they came from.
  *
  * `ChartContainer` writes every config key into a `<style>` element as
  * `--color-<key>`, and rrweb records `<style>` text verbatim: its text-node serializer
  * skips masking whenever the parent is a `STYLE` element, so neither `maskTextFn` nor
- * `maskAttributeFn` sees it. Keying by column name therefore published the customer's
- * own column names into session recordings. The name still reaches the chart as
- * `label`, which renders as text and is masked.
+ * `maskAttributeFn` sees it. Keying by column name would therefore put the customer's own
+ * column names into a recording. The name still reaches the chart as `label`, which
+ * renders as text and is masked.
+ *
+ * The X column keeps its own name. Only config keys reach the `<style>`, and the X column
+ * is never a config key, so renaming it buys nothing. It also costs something: ChartBar
+ * and ChartLine branch on `xKey === 'timestamp'` to format tooltip dates and render the
+ * date-range footer.
  */
-const X_KEY = 'x'
 const seriesKeyFor = (index: number) => `series_${index}`
+
+/**
+ * Guards the one collision the positional keys introduce: an X column literally named
+ * `series_0`. Appends underscores until the X key is distinct from every series key.
+ */
+function xKeyFor(xColumn: string, seriesKeys: string[]): string {
+  let key = xColumn
+  while (seriesKeys.includes(key)) key = `${key}_`
+  return key
+}
 
 export const QueryResultChart = ({ chart, result }: QueryResultChartProps) => {
   const { type, x_column, y_series = [], cumulative, show_labels, scale } = chart ?? {}
@@ -61,16 +75,18 @@ export const QueryResultChart = ({ chart, result }: QueryResultChartProps) => {
     [y_series]
   )
 
+  const xKey = useMemo(() => xKeyFor(x_column ?? '', seriesKeys), [x_column, seriesKeys])
+
   const chartRows = useMemo(() => {
-    const xKey = x_column ?? ''
+    const sourceColumn = x_column ?? ''
     return (result?.rows ?? []).map((row) => {
-      const chartRow: Record<string, string | number> = { [X_KEY]: toChartValue(row[xKey]) }
+      const chartRow: Record<string, string | number> = { [xKey]: toChartValue(row[sourceColumn]) }
       y_series.forEach((column, index) => {
         chartRow[seriesKeyFor(index)] = toChartValue(row[column])
       })
       return chartRow
     })
-  }, [result, x_column, y_series])
+  }, [result, x_column, xKey, y_series])
 
   const cumulativeResults = useMemo(
     () => getCumulativeResults({ rows: chartRows }, { yKey: seriesKeys }),
@@ -121,7 +137,7 @@ export const QueryResultChart = ({ chart, result }: QueryResultChartProps) => {
           {type === 'bar' && (
             <ChartBar
               isFullHeight
-              xKey={X_KEY}
+              xKey={xKey}
               dataKey={seriesKeys[0]}
               dataKeys={seriesKeys}
               config={chartConfig}
@@ -134,7 +150,7 @@ export const QueryResultChart = ({ chart, result }: QueryResultChartProps) => {
           {type === 'line' && (
             <ChartLine
               isFullHeight
-              xKey={X_KEY}
+              xKey={xKey}
               dataKey={seriesKeys[0]}
               dataKeys={seriesKeys}
               config={chartConfig}
