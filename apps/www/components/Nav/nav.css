@@ -1,0 +1,62 @@
+.www-navigation-viewport {
+  animation: none;
+  transition: none;
+}
+
+.www-navigation-viewport[data-open='false'] {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.www-navigation-content {
+  animation: none;
+}
+
+.www-navigation-content[data-active='false'] {
+  opacity: 0;
+  animation: menu-fade-out 1ms both;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .www-navigation-viewport[data-open='true'] {
+    transition:
+      height 250ms ease,
+      width 250ms ease,
+      opacity 150ms ease;
+  }
+
+  .www-navigation-viewport[data-open='false'] {
+    transition:
+      opacity 100ms ease-out,
+      visibility 0s linear 100ms;
+  }
+
+  .www-navigation-content[data-active='true'] {
+    animation: menu-fade-in 250ms ease both;
+  }
+
+  .www-navigation-content[data-active='true'][data-motion='from-end'] {
+    animation: menu-enter-right 250ms ease both;
+  }
+
+  .www-navigation-content[data-active='true'][data-motion='from-start'] {
+    animation: menu-enter-left 250ms ease both;
+  }
+
+  .www-navigation-content[data-active='false'] {
+    animation: menu-fade-out 100ms ease-out both;
+  }
+
+  .www-navigation-content[data-active='false'][data-motion='to-start'] {
+    animation-name: menu-exit-left;
+  }
+
+  .www-navigation-content[data-active='false'][data-motion='to-end'] {
+    animation-name: menu-exit-right;
+  }
+
+  .www-navigation-viewport[data-open='true'] .www-navigation-content[data-active='false'] {
+    animation-duration: 80ms;
+  }
+}

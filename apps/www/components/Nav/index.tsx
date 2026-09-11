@@ -19,6 +19,7 @@ import {
   NavigationMenuLink,
   NavigationMenuList,
   NavigationMenuTrigger,
+  NavigationMenuViewport,
 } from 'ui'
 import { AuthenticatedDropdownMenu } from 'ui-patterns/AuthenticatedDropdownMenu'
 import { AnnouncementBanner } from 'ui-patterns/Banners/AnnouncementBanner'
@@ -39,6 +40,7 @@ const Nav = ({ hideNavbar, stickyNavbar = true }: Props) => {
   const pathname = usePathname()
   const { width } = useWindowSize()
   const [open, setOpen] = useState(false)
+  const [activeDropdown, setActiveDropdown] = useState('')
   const isLoggedIn = useIsLoggedIn()
   const isUserLoading = useIsUserLoading()
   const user = useUser()
@@ -116,22 +118,33 @@ const Nav = ({ hideNavbar, stickyNavbar = true }: Props) => {
                 </div>
                 <NavigationMenu
                   delayDuration={0}
-                  className="hidden pl-8 sm:space-x-4 lg:flex h-16"
-                  viewportClassName="rounded-xl bg-background"
+                  value={activeDropdown}
+                  onValueChange={setActiveDropdown}
+                  renderViewport={false}
+                  className="static hidden pl-8 lg:flex h-16"
                 >
-                  <NavigationMenuList>
+                  <NavigationMenuList className="h-full space-x-0 items-stretch">
                     {menu.primaryNav.map((menuItem) =>
                       menuItem.hasDropdown ? (
-                        <NavigationMenuItem className="text-sm font-medium" key={menuItem.title}>
+                        <NavigationMenuItem
+                          className="text-sm font-medium"
+                          key={menuItem.title}
+                          value={menuItem.title}
+                        >
                           <NavigationMenuTrigger
                             className={cn(
                               buttonVariants({ variant: 'text', size: 'small' }),
-                              'bg-transparent! hover:text-brand-link data-open:text-brand-link! focus-ring focus-visible:text-foreground px-2 h-auto'
+                              'bg-transparent! hover:text-brand-link data-open:text-brand-link! focus-ring focus-visible:text-foreground px-2.5 h-full'
                             )}
                           >
                             {menuItem.title}
                           </NavigationMenuTrigger>
-                          <NavigationMenuContent>{menuItem.dropdown}</NavigationMenuContent>
+                          <NavigationMenuContent
+                            data-active={activeDropdown === menuItem.title}
+                            className="www-navigation-content data-[active=false]:pointer-events-none"
+                          >
+                            {menuItem.dropdown}
+                          </NavigationMenuContent>
                         </NavigationMenuItem>
                       ) : (
                         <NavigationMenuItem className="text-sm font-medium" key={menuItem.title}>
@@ -139,7 +152,7 @@ const Nav = ({ hideNavbar, stickyNavbar = true }: Props) => {
                             <MenuItem
                               href={menuItem.url}
                               title={menuItem.title}
-                              className="group-hover:bg-transparent text-foreground focus-visible:text-brand-link"
+                              className="group-hover:bg-transparent text-foreground focus-visible:text-brand-link px-2.5 h-full"
                               hoverColor="brand"
                             />
                           </NavigationMenuLink>
@@ -147,6 +160,12 @@ const Nav = ({ hideNavbar, stickyNavbar = true }: Props) => {
                       )
                     )}
                   </NavigationMenuList>
+                  <NavigationMenuViewport
+                    forceMount
+                    data-open={activeDropdown !== ''}
+                    containerProps={{ className: 'inset-x-0' }}
+                    className="www-navigation-viewport rounded-xl bg-background"
+                  />
                 </NavigationMenu>
               </div>
               <div className="flex items-center gap-2 opacity-0 animate-fade-in scale-100! delay-300">

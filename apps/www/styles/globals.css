@@ -1,5 +1,6 @@
 @import 'config/tailwind.config.css';
 @import './../../../packages/ui/build/css/themes/faux-classic-dark.css';
+@import '../components/Nav/nav.css';
 
 @source '../_blog/*.mdx';
 @source '../components/**/*.tsx';
